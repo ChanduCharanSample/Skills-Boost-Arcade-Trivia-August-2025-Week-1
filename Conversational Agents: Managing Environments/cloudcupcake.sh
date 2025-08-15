@@ -1,6 +1,5 @@
-#!/bin/bash
-set -e
 
+set -e
 # Auto-detect configuration
 PROJECT_ID=$(gcloud config get-value project)
 if [ -z "$PROJECT_ID" ]; then
