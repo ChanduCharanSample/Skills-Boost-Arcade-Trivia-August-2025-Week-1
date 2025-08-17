@@ -1,52 +1,56 @@
 #!/bin/bash
-# cloudcupcake.sh - Full automation for Conversational Agents: Managing Environments (Task 1)
+# Conversational Agents: Managing Environments - Task 1 automation
+# Cloudcupcake script 🍰
+
+set -e
 
 echo "=============================="
-echo "🚀 Starting Lab Setup..."
-echo "Project ID: $DEVSHELL_PROJECT_ID"
-echo "Region: global"
-echo "Session: test-$RANDOM"
+echo " Conversational Agents Lab Setup "
 echo "=============================="
 
-# 1. Set default project
-echo "1️⃣ Setting default project..."
-gcloud config set project $DEVSHELL_PROJECT_ID
+# Detect project
+PROJECT_ID=$(gcloud config get-value project)
+REGION="global"
 
-# 2. Enable required APIs
-echo "2️⃣ Enabling required APIs..."
+echo "Using Project: $PROJECT_ID"
+echo "Region: $REGION"
+echo "=============================="
+
+# 1. Enable Dialogflow API
+echo "1. Enabling Dialogflow CX API..."
 gcloud services enable dialogflow.googleapis.com
 
-# 3. Download provided agent blob (replace with correct lab blob URL)
-echo "3️⃣ Downloading agent blob..."
-curl -s -o agent-blob.json \
-  https://raw.githubusercontent.com/ChanduCharanSample/Skills-Boost-Arcade-Trivia-August-2025-Week-1/main/Conversational%20Agents:%20Managing%20Environments/agent-blob.json
+# 2. Create CX agent
+echo "2. Creating Flight Booker Agent..."
+AGENT_NAME="flight-booker-agent"
+LOCATION="global"
 
-if [[ ! -f agent-blob.json ]]; then
-  echo "❌ Agent blob download failed. Please check URL."
-  exit 1
-fi
-
-# 4. Create Flight Booker Agent
-echo "4️⃣ Creating Flight Booker Agent..."
-AGENT_ID=$(gcloud alpha dialogflow agents create \
-  --display-name="Flight Booker Agent" \
+gcloud alpha dialogflow cx agents create \
+  --display-name="$AGENT_NAME" \
   --default-language-code="en" \
   --time-zone="America/Los_Angeles" \
-  --location="global" \
-  --project="$DEVSHELL_PROJECT_ID" \
-  --format="value(name)")
+  --location="$LOCATION"
 
-echo "✅ Agent created: $AGENT_ID"
+echo "Agent [$AGENT_NAME] created."
 
-# 5. Restore agent from the blob
-echo "5️⃣ Restoring agent configuration..."
-gcloud alpha dialogflow agents restore \
-  --agent="$AGENT_ID" \
-  --agent-content-file=agent-blob.json \
-  --project="$DEVSHELL_PROJECT_ID"
+# 3. Restore agent from provided blob
+# (Lab usually provides a blob file: `agent.blob`)
+# If file is missing, download from lab instructions
 
-# 6. Confirmation
+if [ -f "agent.blob" ]; then
+  echo "3. Restoring agent from agent.blob..."
+  AGENT_ID=$(gcloud alpha dialogflow cx agents list --location=$LOCATION \
+              --format="value(name)" | grep "$AGENT_NAME" | cut -d/ -f6)
+
+  gcloud alpha dialogflow cx agents restore $AGENT_ID \
+    --location=$LOCATION \
+    --agent-content-file="agent.blob"
+
+  echo "Agent restored successfully."
+else
+  echo "⚠️ agent.blob not found. Please download from lab instructions."
+fi
+
 echo "=============================="
-echo "🎉 Task 1 Complete: Agent setup done!"
-echo "You can now continue with the Dialogflow CX lab."
+echo "Task 1 setup complete ✅"
 echo "=============================="
